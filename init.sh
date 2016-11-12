@@ -42,16 +42,16 @@ find . -type d -print0 | xargs -0 -I{} mkdir -p ../_classic/{}
 find browser communicator devtools global mozapps webide -type f -name "*.css" -print0 | \
   # move original CSS files to "_classic" and prefix them with "_"
   # create corresponding CSS files with @import to their _classic files
-  xargs -0 -I{} echo mv {} ../_classic/{}\; echo @import \'{}\' ">" {} | \
+  xargs -0 -I{} echo mv {} ../_classic/{}\; echo @import \'{}\' ">" {}";" | \
   # prefix _classic filenames with "_" and change ext to .scss (before ;)
   sed 's/\/\([^/]*\)[.]css;/\/_\1.scss;/' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global.css' > global/global.css
+  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global.css' > global/global.css;
   # remove .css from @import targets
   sed 's/\([^/]*\)[.]css/\1/2' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.css
+  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.css;
   # change file extension at the end ($) to scss
   sed 's/[.]css$/.scss/' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.scss
+  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.scss;
   bash
 
 cd ..
