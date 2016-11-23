@@ -7,14 +7,14 @@ if [[ x$FFDIR == x || $FFDIR == -* ]]; then
   exit
 fi
 
-rm    -rf chrome/omni-files _classic
-mkdir -p  chrome/omni-files _classic
+rm    -rf _classic
+mkdir -p  _classic/omni-files chrome
 
-cp $FFDIR/omni.ja         chrome/root-omni.ja &&
-cp $FFDIR/browser/omni.ja chrome/browser-omni.ja || exit 1
+cp $FFDIR/omni.ja         _classic/root-omni.ja &&
+cp $FFDIR/browser/omni.ja _classic/browser-omni.ja || exit 1
 
 # extract the top level omni.ja archive
-cd chrome/omni-files || exit 1
+cd _classic/omni-files || exit 1
 mv ../root-omni.ja .
 unzip -qq root-omni.ja
 
@@ -34,30 +34,28 @@ for dir in devtools webide; {
 cd ..
 rm -rf omni-files
 
-# create directories in "classic" for the original CSS files
-find . -type d -print0 | xargs -0 -I{} mkdir -p ../_classic/{}
+# create directories in "chrome" for @imports to the original styles
+find . -type d -print0 | xargs -0 -I{} mkdir -p ../chrome/{}
 
 
 # find all the original CSS files
 find browser communicator devtools global mozapps webide -type f -name "*.css" -print0 | \
   # move original CSS files to "_classic" and prefix them with "_"
   # create corresponding CSS files with @import to their _classic files
-  xargs -0 -I{} echo mv {} ../_classic/{}\; echo @import \'{}\' ">" {}";" | \
-  # prefix _classic filenames with "_" and change ext to .scss (before ;)
-  sed 's/\/\([^/]*\)[.]css;/\/_\1.scss;/' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global.css' > global/global.css;
+  xargs -0 -I{} echo "mv {} '{}' ; [[ -f ../chrome/'{}' ]] || { echo @import \'{}\'\; > ../chrome/'{}'; }" | \
+  # change appropriate .css to .scss
+  sed "s/[.]css'/.scss'/g" | \
+  # prefix _classic filenames with "_"
+  sed 's/\/\([^/]*\)[.]scss/\/_\1.scss/' | \
   # remove .css from @import targets
-  sed 's/\([^/]*\)[.]css/\1/2' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.css;
-  # change file extension at the end ($) to scss
-  sed 's/[.]css$/.scss/' | \
-  # mv global/global.css ../_classic/global/_global.scss; echo @import 'global/global' > global/global.scss;
+  sed 's/[.]css[\]/\\/' | \
+  # mv x.css global/_global.scss; [[ -f "../chrome/x.scss" ]] || { echo @import \'x\'\; > ../chrome/"x.scss"; }
   bash
 
 cd ..
 
 # delete empty dicectories in _classic
-find _classic -type d -empty -delete
+#find _classic chrome -type d -empty -delete
 
 # write chrome.manifest
 echo \
